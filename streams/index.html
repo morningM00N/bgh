@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스트림스</title>
+</head>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f4f4f4;
+        margin: 0;
+    }
+
+    .container {
+        position: absolute;
+        cursor: pointer;
+        perspective: 800px;
+        width: 100px;
+        height: 100px;
+
+
+        /* 3D 효과를 위한 원근감 설정 */
+    }
+
+    .flipper {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+    }
+
+    /* 클릭 시 실행될 애니메이션 */
+    .container.flipped .flipper {
+        transform: rotateY(180deg);
+    }
+
+    .front {
+        background-color: lightgray;
+        transform: rotateY(0deg);
+        color: #fff;
+    }
+
+    .back {
+        background-color: #000;
+        transform: rotateY(180deg);
+        color: #fff;
+    }
+
+    .front,
+    .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        /* 뒷면 숨기기 */
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 10px 10px 5px rgba(0, 0, 0, 0.3);
+    }
+</style>
+
+<body id="body">
+    <p id="pLeft" style="width:80vw; height: 10vh; position: absolute; top: 0px;">뽑은 타일 수 0개</p>
+    <p id="fullBtn" style="width:20vw; height: 10vh; position: absolute; left: 80vw;top: 0px;">전체화면</p>
+
+
+</body>
+<script>
+    let remainTiles = 0
+    function funcFlip(divId) {
+        let numID = Number(divId.replace('divCont', ''))
+
+        document.getElementById(divId).classList.toggle('flipped');
+        if (!('flip' in curInfor)) {
+            curInfor['flip'] = []
+        }
+        if (document.getElementById(divId).classList.length == 2) {
+            remainTiles += 1
+            curInfor['flip'][numID] = true
+        } else {
+            remainTiles -= 1
+            curInfor['flip'][numID] = false
+        }
+
+        console.log(curInfor)
+        localStorage.setItem('morningm00n_stream', JSON.stringify(curInfor))
+        document.getElementById('pLeft').innerHTML = "뽑은 타일 수 " + remainTiles + "개"
+
+    }
+    let elemBody = document.getElementById('body');
+    let numbers = []
+    for (let i = 1; i <= 10; i++) {
+        numbers.push(i)
+    }
+    for (let i = 11; i <= 19; i++) {
+        numbers.push(i)
+        numbers.push(i)
+    }
+    for (let i = 20; i <= 30; i++) {
+        numbers.push(i)
+    }
+    numbers.push('☆')
+
+    for (let i = numbers.length - 1; i >= 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+
+    let chs = []
+    for (let i = 0; i < 26; ++i) {
+        chs.push(String.fromCharCode(65 + i))
+        chs.push(String.fromCharCode(97 + i))
+    }
+    chs = ['💩', '❤️', '👌', '👍', '✌️', '😎', '😴', '👽', '👿', '😺', '🐶', '🐵', '🐱', '🐯', '🐰', '🐭', '🐷', '🐨', '🐸', '🐼', '🐻', '🐔', '🐲', '🐋', '🦐', '🦑', '🐧', '🦴', '👮‍♀️', '🥷', '🎉', '🎃', '🎁', '🕶️', '🛝', '🎨', '👖', '🧤', '👙', '👑', '⚽', '⚾', '🏀', '🏈', '🎱', '⛳', '🏆', '🎴', '♠️', '♣️', '♥️', '♦️', '🔔', '🔒', '🔑', '🔨', '🪵', '💉', '🔭', '💊', '🧬', '🧲', '💣', '🔍', '💰']
+
+    for (let i = chs.length - 1; i >= 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [chs[i], chs[j]] = [chs[j], chs[i]];
+    }
+
+    let curInfor = {}
+    let storeData = localStorage.getItem('morningm00n_stream')
+    while (storeData != null) {
+        let repeatAns = confirm('진행 중인 게임이 있습니다. 이어서 하시겠습니까?')
+        if (repeatAns == true) {
+            let dictData = JSON.parse(storeData)
+            chs = dictData['chs']
+            numbers = dictData['numbers']
+            curInfor['flip'] = dictData['flip']
+            break
+        } else {
+            let repAns = confirm('새로운 게임을 시작하시겠습니까?')
+            if (repAns == true) {
+                storeData = null
+                curInfor['flip'] = []
+            }
+        }
+    }
+
+
+    curInfor['chs'] = chs
+    curInfor['numbers'] = numbers
+    localStorage.removeItem('morningm00n_stream')
+
+    for (let i = 0; i < 40; i++) {
+        let div = document.createElement('div');
+        div.className = 'container';
+        div.id = 'divCont' + i;
+        elemBody.appendChild(div);
+        div.innerHTML = "<div class='flipper'><div class='front'><p>"
+            + chs[i] + "</p></div><div class='back'><p>"
+            + numbers[i] + "</p></div></div>";
+        document.getElementById('divCont' + i).addEventListener('click', () => { funcFlip('divCont' + i) });
+        if ('flip' in curInfor && curInfor['flip'][i] == true) {
+            funcFlip('divCont' + i)
+        }
+    }
+
+    document.getElementById('pLeft').innerHTML = "뽑은 타일 수 " + remainTiles + "개"
+
+    function getLoc(locs, len, numOfTry, margin) {
+
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        for (let it = 0; it < numOfTry; ++it) {
+            const x = Math.random() * (width - len * margin);
+            const y = Math.random() * (height * 0.9 - len * margin) + height * 0.1;
+            let overlap = false
+            for (let j = 0; j < locs.length; ++j) {
+                if (!(x > locs[j][0] + len * margin || x + len * margin < locs[j][0] || y > locs[j][1] + len * margin || y + len * margin < locs[j][1])) {
+                    overlap = true
+                    break
+                }
+            }
+            if (overlap == false) return ([x, y])
+        }
+        return undefined
+    }
+
+    function locateTiles(len, numOfTry, numOfTry2, margin) {
+        let locs = []
+        for (let i = 0; i < 40; i++) {
+            let loc = undefined
+            for (let it = 0; it < numOfTry; ++it) {
+                loc = getLoc(locs, len, numOfTry2, margin)
+                if (loc != undefined) {
+                    locs.push(loc)
+                    break
+                }
+            }
+            if (loc == undefined) return undefined
+        }
+        console.log("return", locs)
+        return locs
+    }
+
+    function funcLocate() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        document.getElementById('pLeft').style.fontSize = height / 40 + "px"
+        document.getElementById('fullBtn').style.fontSize = height / 40 + "px"
+        let p = 2
+        while (true) {
+            if (p > 10) break
+            const len = Math.sqrt(width * height / p / 40)
+            for (let i = 0; i < 10; ++i) {
+                let locs = locateTiles(len, 100, 100, 1.2)
+
+                if (locs != undefined) {
+                    for (let i = 0; i < 40; i++) {
+                        const element = document.getElementById('divCont' + i);
+                        element.style.fontSize = len / 2 + "px"
+                        element.style.width = len + "px";
+                        element.style.height = len + "px";
+                        element.style.left = locs[i][0] + "px";
+                        element.style.top = locs[i][1] + "px";
+                        let tiled = Math.random() * 15 - 7.5
+                        element.style.transform = `rotateZ(${tiled}deg)`;
+                    }
+                    return
+                }
+            }
+
+            p *= 1.1
+        }
+    }
+
+    window.addEventListener('load', funcLocate);
+    window.addEventListener('resize', funcLocate);
+    document.getElementById('fullBtn').addEventListener('click', function () {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    })
+
+
+</script>
+
+</html>
